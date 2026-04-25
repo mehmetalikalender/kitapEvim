@@ -1,29 +1,3 @@
-import { UserRole } from '../users/entities/user.entity';
-
-export const goldenUsers = [
-    {
-        email: 'superadmin@clone.com',
-        password: 'Password123!', // Seeder servisinde bunu hash'leyip kaydedeceğiz
-        firstName: 'Super',
-        lastName: 'Admin',
-        role: UserRole.SUPERADMIN,
-    },
-    {
-        email: 'admin@clone.com',
-        password: 'Password123!',
-        firstName: 'Normal',
-        lastName: 'Admin',
-        role: UserRole.ADMIN,
-    },
-    {
-        email: 'customer@clone.com',
-        password: 'Password123!',
-        firstName: 'Sadık',
-        lastName: 'Müşteri',
-        role: UserRole.CUSTOMER,
-    },
-];
-
 export const goldenBooks = [
     {
         title: 'Saatleri Ayarlama Enstitüsü',

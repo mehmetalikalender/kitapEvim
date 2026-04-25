@@ -33,7 +33,7 @@ export class UsersService {
 
       await this.usersRepository.save(defaultAdmin);
       this.logger.log('Sistemde SuperAdmin bulunamadı. Varsayılan kurucu hesap oluşturuldu!');
-      this.logger.log('Email: kurucu@clone.com | Şifre: Pasword123!');
+      this.logger.log('Email: kurucu@clone.com | Şifre: Password123!');
     }
   }
 

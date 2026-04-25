@@ -3,19 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 import { Book } from '../books/entities/book.entity';
 import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { OrderItem } from '../orders/entities/order-item.entity';
-import { goldenUsers, goldenBooks } from './golden-data';
+import { goldenBooks } from './golden-data'; // goldenUsers importu artık gerekli değildir
 
 @Injectable()
 export class SeederService {
-    // Terminalde aşamaları güzelce görebilmek için Logger ekliyoruz
     private readonly logger = new Logger(SeederService.name);
 
     constructor(
-        private dataSource: DataSource, // Raw SQL (TRUNCATE) çalıştırmak için
+        private dataSource: DataSource,
         @InjectRepository(User) private usersRepo: Repository<User>,
         @InjectRepository(Book) private booksRepo: Repository<Book>,
         @InjectRepository(Order) private ordersRepo: Repository<Order>,
@@ -23,27 +22,32 @@ export class SeederService {
     ) { }
 
     async seedAll() {
-        this.logger.log('Sıfırlama işlemi (Golden State) başlıyor...');
+        this.logger.log('Sıfırlama işlemi (Kısmi Golden State) başlıyor...');
 
-        // 1. AŞAMA: BÜYÜK TEMİZLİK (TRUNCATE)
-        // CASCADE sayesinde tablolar arasındaki kancalar (foreign keys) koparılır ve her şey tertemiz silinir.
+        // 1. AŞAMA: KISMİ TEMİZLİK (TRUNCATE)
+        // DİKKAT: 'users' tablosu çıkarıldı. Böylece mevcut hesaplar ve oturumlar korunur.
         await this.dataSource.query(
-            `TRUNCATE TABLE users, books, orders, order_items CASCADE;`
+            `TRUNCATE TABLE books, orders, order_items CASCADE;`
         );
-        this.logger.log('1. Veritabanı başarıyla temizlendi.');
+        this.logger.log('1. Kitap ve sipariş veritabanı başarıyla temizlendi (Kullanıcılar korundu).');
 
-        // 2. AŞAMA: ALTIN KULLANICILARI EKLEME
-        const savedUsers: User[] = [];
-        for (const userData of goldenUsers) {
-            // Şifreleri açık bırakamayız, bcrypt ile hash'liyoruz
-            const hashedPassword = await bcrypt.hash(userData.password, 10);
-            const user = this.usersRepo.create({ ...userData, password: hashedPassword });
-            savedUsers.push(await this.usersRepo.save(user));
+        // 2. AŞAMA: SİMÜLASYON İÇİN MÜŞTERİ KONTROLÜ
+        // Siparişlerin bağlanacağı bir müşteri hesabı aranır. Bulunamazsa simülasyonun çökmemesi için varsayılan bir müşteri oluşturulur.
+        let customer = await this.usersRepo.findOne({ where: { role: UserRole.CUSTOMER } });
+        if (!customer) {
+            const hashedPassword = await bcrypt.hash('Password123!', 10);
+            customer = this.usersRepo.create({
+                email: 'customer@clone.com',
+                password: hashedPassword,
+                firstName: 'Sadık',
+                lastName: 'Müşteri',
+                role: UserRole.CUSTOMER,
+            });
+            await this.usersRepo.save(customer);
+            this.logger.log('2. Simülasyon için örnek müşteri hesabı oluşturuldu.');
+        } else {
+            this.logger.log('2. Mevcut müşteri hesabı simülasyon için seçildi.');
         }
-        this.logger.log('2. Altın Kullanıcılar (SuperAdmin, Admin, Customer) eklendi.');
-
-        // Sipariş simülasyonunda kullanmak için müşteriyi seçelim
-        const customer = savedUsers.find(u => u.email === 'customer@clone.com');
 
         // 3. AŞAMA: VİTRİNİ (KİTAPLARI) DOLDURMA
         const savedBooks: Book[] = [];
@@ -57,7 +61,7 @@ export class SeederService {
         for (let i = 0; i < 80; i++) {
             const randomBook = savedBooks[Math.floor(Math.random() * savedBooks.length)];
             const quantity = Math.floor(Math.random() * 3) + 1;
-            const totalAmount = randomBook.price * quantity;
+            const totalAmount = Number(randomBook.price) * quantity;
 
             // Son 6 ay içine homojen dağılması için rastgele bir tarih atanmaktadır
             const pastDate = new Date();
@@ -85,8 +89,7 @@ export class SeederService {
 
         return {
             success: true,
-            message: 'Sistem başarıyla Golden State (Altın Durum) ayarlarına döndürüldü!',
-            note: 'SuperAdmin, Admin ve Customer hesapları için şifre: Password123!'
+            message: 'Sistem başarıyla Golden State ayarlarına döndürüldü. Mevcut oturumlar korundu.',
         };
     }
 }
