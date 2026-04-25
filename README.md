@@ -74,9 +74,14 @@ npm run dev
 
 İstemci tarafı terminalde belirtilen adreste (genellikle `http://localhost:5173`) çalışmaya başlayacaktır.
 
-Varsayılan otomatik olarak superadmin yetkisinde oluşturulan kullanıcı giriş bilgileri; 
-Email: kurucu@clone.com  
-Şifre: Password123!
+## 🔐 Varsayılan Süper Admin Hesabı
+
+Sistem ayağa kalktıktan sonra aşağıdaki bilgilerle doğrudan giriş yapılabilir. Bu hesap otomatik olarak **superadmin** yetkisiyle oluşturulmaktadır:
+
+| Alan | Değer |
+|------|-------|
+| **Email** | `kurucu@clone.com` |
+| **Şifre** | `Password123!` |
 
 ---
 
