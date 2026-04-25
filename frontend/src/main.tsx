@@ -1,0 +1,21 @@
+// src/main.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext'; // EKLEDİK
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        {/* CartProvider'ı ekliyoruz */}
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>,
+);
